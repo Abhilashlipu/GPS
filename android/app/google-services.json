@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "180432786794",
+    "project_id": "eagleeye-3d463",
+    "storage_bucket": "eagleeye-3d463.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:180432786794:android:3492f681471e97cf850113",
+        "android_client_info": {
+          "package_name": "com.example.eagle_eye"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "180432786794-cgavsviei86m7891b9q99b7eq84nj9b8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6RFYOTrkYs84EtncWUGvrCLs_J6Xi9YE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "180432786794-cgavsviei86m7891b9q99b7eq84nj9b8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
