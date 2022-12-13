@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 
 class GoogleMapPage extends StatefulWidget {
   //const GoogleMapPage({Key? key}) : super(key: key);
@@ -21,6 +22,7 @@ class GoogleMapPage extends StatefulWidget {
 class _GoogleMapPageState extends State<GoogleMapPage> {
   var start = 30;
   int Speed = 0;
+  double voltage = 0;
   double lat1 = 20.325365;
   double lng1 = 85.813346;
 
@@ -36,6 +38,8 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
   late GoogleMapController mapController;
   List<LatLng> points = <LatLng>[];
   LatLng _lastMapPosition = _center;
+  bool Hasinternet = false;
+  bool Connection = false;
   //String firebaseUID = 'Unknown';
 
   User? user = FirebaseAuth.instance.currentUser;
@@ -54,11 +58,13 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
 
   void _onMapCreated(GoogleMapController controller) {
     setState(() {
-      // latlngapi();
+      //internetconnection();
 
       latlngapi1();
 
       startTimer();
+
+      // latlngapi();
 
       // _markers.add(
       //   Marker(markerId: MarkerId('id-1'), position: _center, icon: mapMarker),
@@ -67,6 +73,34 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
     });
     points.add(_center);
   }
+
+  connection() async {
+    bool connection = await InternetConnectionChecker().hasConnection;
+    Connection = connection;
+    // if (Connection == true) {
+    //   latlngapi1();
+
+    //   startTimer();
+
+    //   print('internet is connected');
+    // } else {
+    //   print('No internet ');
+    // }
+  }
+
+  // internetconnection() async {
+  //   bool hasinternet = await InternetConnectionChecker().hasConnection;
+  //   Hasinternet = hasinternet;
+  //   if (Hasinternet == true) {
+  //     latlngapi1();
+
+  //     startTimer();
+
+  //     print('internet is connected');
+  //   } else {
+  //     print('No internet ');
+  //   }
+  // }
 
   void startTimer() {
     const onsec = Duration(seconds: 1);
@@ -79,12 +113,18 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
           // _gpsuser = gpsuser;
           // print("${_gpsuser.gpsData.speed}");
           // print("${_gpsuser.gpsData.latitude}");
-          latlngapi();
+
+          if (Connection == true) {
+            latlngapi();
+          } else {
+            latlngapi1();
+          }
           start = 30;
         });
       } else {
         setState(() {
           print('$start');
+          connection();
           start--;
         });
       }
@@ -111,6 +151,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
     print("${data["gps_data"]["latitude"]}");
     String latitude = (data["gps_data"]["latitude"]).toString();
     String longitude = (data["gps_data"]["longitude"]).toString();
+    double batteryvoltage = double.parse(data["gps_data"]["aio1"]);
 
     // var lat11 = latitude.substring(0, 9);
     // var lat22 = latitude.substring(2, 2);
@@ -159,6 +200,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
     // double speed = double.parse(data["gps_data"]["speed"]);
 
     Speed = speed;
+    voltage = batteryvoltage;
     _markers.add(
       Marker(
           markerId: MarkerId('id-1'),
@@ -199,6 +241,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
     print("${data["gps_data"]["latitude"]}");
     String latitude = (data["gps_data"]["latitude"]).toString();
     String longitude = (data["gps_data"]["longitude"]).toString();
+    double batteryvoltage = double.parse(data["gps_data"]["aio1"]);
 
     // var lat11 = latitude.substring(0, 9);
     // var lat22 = latitude.substring(2, 2);
@@ -241,6 +284,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
     //double speed = double.parse(data["gps_data"]["speed"]);
 
     // Speed = speed;
+    voltage = batteryvoltage;
     _markers.add(
       Marker(
           markerId: MarkerId('id-1'),
@@ -287,7 +331,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
               Container(
                 height: 590,
                 // width: 800,
-        
+
                 child: GoogleMap(
                   onMapCreated: _onMapCreated,
                   mapType: MapType.normal,
@@ -323,6 +367,40 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                       ),
                       Text(
                         "             SPEED:    $Speed   " + " Km/hr",
+                        style: TextStyle(
+                          fontSize: 18.0,
+                          color: Colors.white,
+                        ),
+                      ),
+                      // Text(
+                      //   '    $email',
+                      //   style: TextStyle(
+                      //     fontSize: 14.0,
+                      //     color: Colors.white,
+                      //    ),
+                      //  ),
+                    ],
+                  ),
+                ),
+              ),
+
+              Container(
+                width: 500,
+                height: 50,
+                color: Colors.blue,
+                margin: EdgeInsets.all(3),
+                child: Card(
+                  color: Colors.blue,
+                  margin: EdgeInsets.symmetric(horizontal: 2.0, vertical: 2.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Text(
+                        "             VOLTAGE:    $voltage " + " volt",
                         style: TextStyle(
                           fontSize: 18.0,
                           color: Colors.white,

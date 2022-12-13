@@ -55,6 +55,7 @@ dependencies:
   get_storage: ^2.0.3
   get: ^4.6.5
   workmanager: 0.5.0
+  internet_connection_checker: ^0.0.1+4
  # syncfusion_flutter_gauges: ^19.4.50
   
 
