@@ -3,8 +3,10 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:eagle_eye/API/getusergps_model.dart';
+import 'package:eagle_eye/pages/user_main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:internet_connection_checker/internet_connection_checker.dart';
@@ -38,8 +40,8 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
   late GoogleMapController mapController;
   List<LatLng> points = <LatLng>[];
   LatLng _lastMapPosition = _center;
-  bool Hasinternet = false;
-  bool Connection = false;
+  //bool Conn = true;
+  bool Connection = true;
   //String firebaseUID = 'Unknown';
 
   User? user = FirebaseAuth.instance.currentUser;
@@ -77,14 +79,24 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
   connection() async {
     bool connection = await InternetConnectionChecker().hasConnection;
     Connection = connection;
+
     // if (Connection == true) {
-    //   latlngapi1();
-
-    //   startTimer();
-
-    //   print('internet is connected');
+    //   latlngapi();
     // } else {
-    //   print('No internet ');
+    //   print("No internet");
+    //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    //     backgroundColor: Colors.red,
+    //     content: Text(
+    //       "Internet is disconnected",
+    //       style: TextStyle(fontSize: 15.0),
+    //     ),
+    //   ));
+    //   Navigator.push(
+    //       context, MaterialPageRoute(builder: (context) => UserMain()));
+    //   timer?.cancel();
+    //   // setState(() {
+    //   //   latlngapi1();
+    //   // });
     // }
   }
 
@@ -102,6 +114,23 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
   //   }
   // }
 
+  // refresh() async {
+  //   bool conn = await InternetConnectionChecker().hasConnection;
+  //   Conn = conn;
+  // if (Conn == false) {
+  //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+  //     backgroundColor: Colors.red,
+  //     content: Text(
+  //       "Internet is disconnected",
+  //       style: TextStyle(fontSize: 15.0),
+  //     ),
+  //   ));
+
+  //   Navigator.push(
+  //       context, MaterialPageRoute(builder: (context) => UserMain()));
+  // }
+  //}
+
   void startTimer() {
     const onsec = Duration(seconds: 1);
     Timer _timer = Timer.periodic(onsec, (timer) {
@@ -113,18 +142,47 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
           // _gpsuser = gpsuser;
           // print("${_gpsuser.gpsData.speed}");
           // print("${_gpsuser.gpsData.latitude}");
-
+          connection();
           if (Connection == true) {
             latlngapi();
           } else {
-            latlngapi1();
+            print("No internet");
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              backgroundColor: Colors.red,
+              content: Text(
+                "Internet is disconnected",
+                style: TextStyle(fontSize: 15.0),
+              ),
+            ));
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => UserMain()));
+            timer.cancel();
+            // setState(() {
+            //   latlngapi1();
+            // });
           }
+
           start = 30;
         });
       } else {
         setState(() {
           print('$start');
+
           connection();
+          if (Connection == false) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              backgroundColor: Colors.red,
+              content: Text(
+                "Internet is disconnected",
+                style: TextStyle(fontSize: 15.0),
+              ),
+            ));
+
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => UserMain()));
+            timer.cancel();
+          }
+
           start--;
         });
       }
@@ -133,177 +191,195 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
 
   // Future<GetUserGpsModel>
   latlngapi() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    String firebaseUID = user!.uid.toString();
-    var apiurl = Uri.parse("http://eatechgps.in/get_user_gps_location");
-    String mapdata = jsonEncode({'imei': firebaseUID});
-    Map<String, String> setheaders = {
-      'Content-Type': 'application/json',
-      'Auth-Token': 'API-EATECH-NsVjeTwJ21MDhkItL'
-    };
-    http.Response response =
-        await http.post(apiurl, headers: setheaders, body: mapdata);
-    var data = jsonDecode(response.body);
-    // return getUserGpsModelFromJson(data);
+    
+    
+      User? user = FirebaseAuth.instance.currentUser;
+      String firebaseUID = user!.uid.toString();
+      var apiurl = Uri.parse("http://eatechgps.in/get_user_gps_location");
+      String mapdata = jsonEncode({'imei': firebaseUID});
+      Map<String, String> setheaders = {
+        'Content-Type': 'application/json',
+        'Auth-Token': 'API-EATECH-NsVjeTwJ21MDhkItL'
+      };
+      http.Response response =
+          await http.post(apiurl, headers: setheaders, body: mapdata);
+      var data = jsonDecode(response.body);
+      // return getUserGpsModelFromJson(data);
 
-    print("DATA: ${data}");
-    print("${data["message"]}");
-    print("${data["gps_data"]["latitude"]}");
-    String latitude = (data["gps_data"]["latitude"]).toString();
-    String longitude = (data["gps_data"]["longitude"]).toString();
-    double batteryvoltage = double.parse(data["gps_data"]["aio1"]);
+      print("DATA: ${data}");
+      print("${data["message"]}");
+      print("${data["gps_data"]["latitude"]}");
+      String latitude = (data["gps_data"]["latitude"]).toString();
+      String longitude = (data["gps_data"]["longitude"]).toString();
+      double batteryvoltage = double.parse(data["gps_data"]["aio1"]);
 
-    // var lat11 = latitude.substring(0, 9);
-    // var lat22 = latitude.substring(2, 2);
+      // var lat11 = latitude.substring(0, 9);
+      // var lat22 = latitude.substring(2, 2);
 
-    // double? lat1 = double.tryParse('${lat11}');
-    // double? lat2 = double.tryParse('${lat22}');
+      // double? lat1 = double.tryParse('${lat11}');
+      // double? lat2 = double.tryParse('${lat22}');
 
-    double lat11 = double.parse('${latitude.substring(0, 2)}');
-    print("lat1: ${lat11}");
-    print("latitude: ${latitude}");
-    double lat22 = double.parse('${latitude.substring(2, 9)}');
+      double lat11 = double.parse('${latitude.substring(0, 2)}');
+      print("lat1: ${lat11}");
+      print("latitude: ${latitude}");
+      double lat22 = double.parse('${latitude.substring(2, 9)}');
 
-    print("lat2: ${lat22}");
+      print("lat2: ${lat22}");
 
-    double lat = (lat11 + (lat22 / 60.0));
+      double lat = (lat11 + (lat22 / 60.0));
 
-    //  var lng11 = longitude.substring(0, 9);
-    // var lng22 = longitude.substring(3, 2);
+      //  var lng11 = longitude.substring(0, 9);
+      // var lng22 = longitude.substring(3, 2);
 
-    // double? lng1 = double.tryParse('${lat11}');
-    // double? lng2 = double.tryParse('${lat22}');
+      // double? lng1 = double.tryParse('${lat11}');
+      // double? lng2 = double.tryParse('${lat22}');
 
-    double lng11 = double.parse('${longitude.substring(0, 3)}');
-    double lng22 = double.parse('${longitude.substring(3, 9)}');
+      double lng11 = double.parse('${longitude.substring(0, 3)}');
+      double lng22 = double.parse('${longitude.substring(3, 9)}');
 
-    double lng = lng11 + (lng22 / 60.0);
+      double lng = lng11 + (lng22 / 60.0);
 
-    // double lat = 22.565743;
-    // double lng = 88.353013;
+      // double lat = 22.565743;
+      // double lng = 88.353013;
 
-    // double lat = double.parse(data["gps_data"]["latitude"]);
-    // double lng = double.parse(data["gps_data"]["longitude"]);
+      // double lat = double.parse(data["gps_data"]["latitude"]);
+      // double lng = double.parse(data["gps_data"]["longitude"]);
 
-    double lat2 = lat;
-    double lng2 = lng;
+      double lat2 = lat;
+      double lng2 = lng;
 
-    double distance = calculateDistance(lat1, lng1, lat2, lng2);
+      double distance = calculateDistance(lat1, lng1, lat2, lng2);
 
-    double s = distance / 0.0083333333333;
+      double s = distance / 0.0083333333333;
 
-    int speed = s.round();
+      int speed = s.round();
 
-    lat1 = lat2;
-    lng1 = lng2;
+      lat1 = lat2;
+      lng1 = lng2;
 
-    // double speed = double.parse(data["gps_data"]["speed"]);
+      // double speed = double.parse(data["gps_data"]["speed"]);
 
-    Speed = speed;
-    voltage = batteryvoltage;
-    _markers.add(
-      Marker(
-          markerId: MarkerId('id-1'),
-          position: LatLng(lat, lng),
-          icon: mapMarker),
-    );
-    mapController
-        .animateCamera(CameraUpdate.newLatLngZoom(LatLng(lat, lng), 18));
-    points.add(LatLng(lat, lng));
-    print(points);
-    print(points.length);
-    // _polyline.add(Polyline(
-    //   polylineId: PolylineId(_lastMapPosition.toString()),
-    //   visible: true,
-    //   width: 3,
-    //   //points is List<LatLng>
-    //   points: points,
-    //   color: Colors.blue,
-    // ));
+      Speed = speed;
+      voltage = batteryvoltage;
+      _markers.add(
+        Marker(
+            markerId: MarkerId('id-1'),
+            position: LatLng(lat, lng),
+            icon: mapMarker),
+      );
+      mapController
+          .animateCamera(CameraUpdate.newLatLngZoom(LatLng(lat, lng), 18));
+      points.add(LatLng(lat, lng));
+      print(points);
+      print(points.length);
+      // _polyline.add(Polyline(
+      //   polylineId: PolylineId(_lastMapPosition.toString()),
+      //   visible: true,
+      //   width: 3,
+      //   //points is List<LatLng>
+      //   points: points,
+      //   color: Colors.blue,
+      // ));
+    
   }
 
   latlngapi1() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    String firebaseUID = user!.uid.toString();
-    var apiurl = Uri.parse("http://eatechgps.in/get_user_gps_location");
-    String mapdata = jsonEncode({'imei': firebaseUID});
-    Map<String, String> setheaders = {
-      'Content-Type': 'application/json',
-      'Auth-Token': 'API-EATECH-NsVjeTwJ21MDhkItL'
-    };
-    http.Response response =
-        await http.post(apiurl, headers: setheaders, body: mapdata);
-    var data = jsonDecode(response.body);
-    // return getUserGpsModelFromJson(data);
+    connection();
+    if (Connection == false) {
+      print("No internet");
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              backgroundColor: Colors.red,
+              content: Text(
+                "Internet is disconnected",
+                style: TextStyle(fontSize: 15.0),
+              ),
+            ));
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => UserMain()));
+    } else {
+      User? user = FirebaseAuth.instance.currentUser;
+      String firebaseUID = user!.uid.toString();
+      var apiurl = Uri.parse("http://eatechgps.in/get_user_gps_location");
+      String mapdata = jsonEncode({'imei': firebaseUID});
+      Map<String, String> setheaders = {
+        'Content-Type': 'application/json',
+        'Auth-Token': 'API-EATECH-NsVjeTwJ21MDhkItL'
+      };
+      http.Response response =
+          await http.post(apiurl, headers: setheaders, body: mapdata);
+      var data = jsonDecode(response.body);
+      // return getUserGpsModelFromJson(data);
 
-    print("DATA: ${data}");
-    print("${data["message"]}");
-    print("${data["gps_data"]["latitude"]}");
-    String latitude = (data["gps_data"]["latitude"]).toString();
-    String longitude = (data["gps_data"]["longitude"]).toString();
-    double batteryvoltage = double.parse(data["gps_data"]["aio1"]);
+      print("DATA: ${data}");
+      print("${data["message"]}");
+      print("${data["gps_data"]["latitude"]}");
+      String latitude = (data["gps_data"]["latitude"]).toString();
+      String longitude = (data["gps_data"]["longitude"]).toString();
+      double batteryvoltage = double.parse(data["gps_data"]["aio1"]);
 
-    // var lat11 = latitude.substring(0, 9);
-    // var lat22 = latitude.substring(2, 2);
+      // var lat11 = latitude.substring(0, 9);
+      // var lat22 = latitude.substring(2, 2);
 
-    // double? lat1 = double.tryParse('${lat11}');
-    // double? lat2 = double.tryParse('${lat22}');
+      // double? lat1 = double.tryParse('${lat11}');
+      // double? lat2 = double.tryParse('${lat22}');
 
-    double lat11 = double.parse('${latitude.substring(0, 2)}');
-    print("lat1: ${lat11}");
-    print("latitude: ${latitude}");
-    double lat22 = double.parse('${latitude.substring(2, 9)}');
+      double lat11 = double.parse('${latitude.substring(0, 2)}');
+      print("lat1: ${lat11}");
+      print("latitude: ${latitude}");
+      double lat22 = double.parse('${latitude.substring(2, 9)}');
 
-    print("lat2: ${lat22}");
+      print("lat2: ${lat22}");
 
-    double lat = (lat11 + (lat22 / 60.0));
-    double Lat1 = lat;
+      double lat = (lat11 + (lat22 / 60.0));
+      double Lat1 = lat;
 
-    lat1 = Lat1;
+      lat1 = Lat1;
 
-    //  var lng11 = longitude.substring(0, 9);
-    // var lng22 = longitude.substring(3, 2);
+      //  var lng11 = longitude.substring(0, 9);
+      // var lng22 = longitude.substring(3, 2);
 
-    // double? lng1 = double.tryParse('${lat11}');
-    // double? lng2 = double.tryParse('${lat22}');
+      // double? lng1 = double.tryParse('${lat11}');
+      // double? lng2 = double.tryParse('${lat22}');
 
-    double lng11 = double.parse('${longitude.substring(0, 3)}');
-    double lng22 = double.parse('${longitude.substring(3, 9)}');
+      double lng11 = double.parse('${longitude.substring(0, 3)}');
+      double lng22 = double.parse('${longitude.substring(3, 9)}');
 
-    double lng = lng11 + (lng22 / 60.0);
-    double Lng1 = lng;
+      double lng = lng11 + (lng22 / 60.0);
+      double Lng1 = lng;
 
-    lng1 = Lng1;
+      lng1 = Lng1;
 
-    // double lat = 22.565743;
-    // double lng = 88.353013;
+      // double lat = 22.565743;
+      // double lng = 88.353013;
 
-    // double lat = double.parse(data["gps_data"]["latitude"]);
-    // double lng = double.parse(data["gps_data"]["longitude"]);
+      // double lat = double.parse(data["gps_data"]["latitude"]);
+      // double lng = double.parse(data["gps_data"]["longitude"]);
 
-    //double speed = double.parse(data["gps_data"]["speed"]);
+      //double speed = double.parse(data["gps_data"]["speed"]);
 
-    // Speed = speed;
-    voltage = batteryvoltage;
-    _markers.add(
-      Marker(
-          markerId: MarkerId('id-1'),
-          position: LatLng(lat, lng),
-          icon: mapMarker),
-    );
-    mapController
-        .animateCamera(CameraUpdate.newLatLngZoom(LatLng(lat, lng), 18));
-    points.add(LatLng(lat, lng));
-    print(points);
-    print(points.length);
-    // _polyline.add(Polyline(
-    //   polylineId: PolylineId(_lastMapPosition.toString()),
-    //   visible: true,
-    //   width: 3,
-    //   //points is List<LatLng>
-    //   points: points,
-    //   color: Colors.blue,
-    // ));
+      // Speed = speed;
+      voltage = batteryvoltage;
+      _markers.add(
+        Marker(
+            markerId: MarkerId('id-1'),
+            position: LatLng(lat, lng),
+            icon: mapMarker),
+      );
+      mapController
+          .animateCamera(CameraUpdate.newLatLngZoom(LatLng(lat, lng), 18));
+      points.add(LatLng(lat, lng));
+      print(points);
+      print(points.length);
+      // _polyline.add(Polyline(
+      //   polylineId: PolylineId(_lastMapPosition.toString()),
+      //   visible: true,
+      //   width: 3,
+      //   //points is List<LatLng>
+      //   points: points,
+      //   color: Colors.blue,
+      // ));
+
+    }
   }
 
   double calculateDistance(lat1, lon1, lat2, lon2) {
